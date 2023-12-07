@@ -356,16 +356,14 @@ mysql> select username,password from sd4fg_users;
 2 rows in set (0.00 sec)
 
 ```
-We have 2 hashes our use lewis and unknown user logan.
+We have 2 hashes our user lewis and unknown user logan.
 
 Copy he hash and save to file john.hash for John the Ripper brutforce attack
 
 ## 15. Brutforcing hash with john
 
 ```
-
 john --wordlist=/usr/share/wordlists/rockyou.txt john.hash 
-
 ```
 ![plot](./screens/11.png)
 
