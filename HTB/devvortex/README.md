@@ -336,6 +336,12 @@ Go to path joomla database config and finded creds for database
 
 Connect to mysql and show databases
 
+```bash
+mysql -u lewis -p
+
+```
+
+
 ```sql
 mysql> show databases;
 mysql> use joomla;
