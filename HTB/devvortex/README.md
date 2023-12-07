@@ -408,4 +408,4 @@ press V (view report)
 
 ![plot](./screens/12.png)
 
-And we have a root shell read root.txt!
+And we have a root shell!
