@@ -319,3 +319,7 @@ Upgrade-Insecure-Requests: 1
 ![plot](./screens/root-and-user.png)
 
 И мы получаем рута и юзера сразу одной командой!
+
+p.s. Можно скопировать приватный ключ из папки .ssh себе на машину и подключиться как root полноценный!
+
+![plot](./screens/root-ssh.png)
